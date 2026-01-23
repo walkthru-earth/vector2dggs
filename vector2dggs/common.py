@@ -264,7 +264,15 @@ def bisection_preparation(
     cut_threshold = float(cut_threshold) if cut_threshold != None else None
 
     if cut_threshold and cut_crs:
-        df = df.to_crs(cut_crs)
+        if df.crs is None and len(df.index) == 0:
+            # empty + naive: nothing to transform
+            df = df.set_crs(cut_crs, allow_override=True)
+        elif df.crs is None:
+            raise ValueError(
+                "Input has no CRS; cannot reproject. Specify input CRS or provide a dataset with CRS."
+            )
+        else:
+            df = df.to_crs(cut_crs)
     else:
         cut_crs = df.crs
 
@@ -350,6 +358,13 @@ def index(
     else:
         # Read file
         df = gpd.read_file(input_file, layer=layer)
+
+    if df is None or len(df.index) == 0:
+        LOGGER.warning(
+            "Input contained 0 features (layer=%s). Nothing to index; exiting.",
+            layer if layer else "<default>",
+        )
+        return output_directory
 
     df, cut_crs, cut_threshold = bisection_preparation(
         df, dggs, parent_res, cut_crs, cut_threshold
