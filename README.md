@@ -22,9 +22,18 @@ Contributions (especially for other DGGSs), suggestions, bug reports and strongl
 
 ## Installation
 
+This tool makes use of optional extras to allow you to install a limited subset of DGGSs.
+
+If you want all possible:
+
 ```bash
-pip install vector2dggs
+pip install vector2dggs[all]
 ```
+
+If you want only a subset, use the pattern `pip install vector2dggs[rhp]` (for one) or `pip install vector2dggs[h3,s2]` (for multiple).
+
+A bare `pip install vector2dggs` **will not install any DGGS backends**.
+
 
 ## Usage
 
@@ -193,7 +202,9 @@ In brief, to get started:
   - If the installation of `s2geometry` fails, you may require SWIG to build it. (A command like `conda install swig` or `sudo dnf install swig` depending on your platform).
 - Subsequently, the virtual environment can be re-activated with `poetry shell`.
 
-If you run `poetry install`, the CLI tool will be aliased so you can simply use `vector2dggs` rather than `poetry run vector2dggs`, which is the alternative if you do not `poetry install`.
+If you run `poetry install -E all --with dev`, the CLI tool will be aliased so you can simply use `vector2dggs` rather than `poetry run vector2dggs`, which is the alternative if you do not `poetry install -E all --with dev`.
+
+For partial backend support you can consider `poetry install --with dev -E h3 -E s2` etc. To check what is installed: `poetry show --tree`.
 
 Alternatively, it is also possible to install using pip with `pip install -e .`, and bypass Poetry.
 

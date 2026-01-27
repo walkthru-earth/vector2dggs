@@ -1,37 +1,39 @@
 """
-
-@author: ndemaio
+@author: ndemaio, alpha-beta-soup
 """
+
+from importlib import import_module
+from typing import Dict, Tuple, Type
 
 from vector2dggs.indexers import vectorindexer
 
-import vector2dggs.indexers.h3vectorindexer as h3vectorindexer
-import vector2dggs.indexers.rhpvectorindexer as rhpvectorindexer
-import vector2dggs.indexers.geohashvectorindexer as geohashvectorindexer
-import vector2dggs.indexers.s2vectorindexer as s2vectorindexer
-
-
-"""
-Match DGGS name to indexer class name
-"""
-indexer_lookup = {
-    "h3": h3vectorindexer.H3VectorIndexer,
-    "rhp": rhpvectorindexer.RHPVectorIndexer,
-    "geohash": geohashvectorindexer.GeohashVectorIndexer,
-    "s2": s2vectorindexer.S2VectorIndexer,
+INDEXER_LOOKUP: Dict[str, Tuple[str, str, str]] = {
+    "h3": ("vector2dggs.indexers.h3vectorindexer", "H3VectorIndexer", "h3"),
+    "rhp": ("vector2dggs.indexers.rhpvectorindexer", "RHPVectorIndexer", "rhp"),
+    "geohash": (
+        "vector2dggs.indexers.geohashvectorindexer",
+        "GeohashVectorIndexer",
+        "geohash",
+    ),
+    "s2": ("vector2dggs.indexers.s2vectorindexer", "S2VectorIndexer", "s2"),
 }
 
 
-"""
-Looks up and instantiates an appropriate indexer class given a DGGS name
-as defined in the list of click commands
-"""
-
-
 def indexer_instance(dggs: str) -> vectorindexer.VectorIndexer:
-    """
-    Create and return appropriate indexer instance
-    """
+    try:
+        module_name, class_name, extra = INDEXER_LOOKUP[dggs]
+    except KeyError as e:
+        raise ValueError(
+            f"Unknown DGGS: '{dggs}'. Options: {sorted(INDEXER_LOOKUP)}"
+        ) from e
 
-    indexer = indexer_lookup[dggs]
+    try:
+        module = import_module(module_name)
+    except ModuleNotFoundError as e:
+        raise ImportError(
+            f"Mising dependency '{e.name}' for backend '{dggs}'.\n"
+            f"Install optional dependencies: pip install 'vector2dggs[{extra}]' "
+            f"(or 'vector2dggs[all]')."
+        ) from e
+    indexer: Type[vectorindexer.VectorIndexer] = getattr(module, class_name)
     return indexer(dggs)
